@@ -1,0 +1,100 @@
+package br.edu.infnet.carrinho.servlet;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+
+import javax.inject.Inject;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import br.edu.infnet.carrinho.ejb.CarrinhoEjb;
+import br.edu.infnet.carrinho.modelo.Produto;
+
+
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import javax.json.Json;
+import javax.json.stream.JsonParser;
+import javax.json.stream.JsonParser.Event;
+  
+
+
+@WebServlet(name = "Carrinho", urlPatterns =  {"/Carrinho","/cart"})
+public class CarrinhoServlet extends HttpServlet {
+
+	@Inject
+	private CarrinhoEjb carrinho;
+	
+	@Override
+	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+		
+		resp.setContentType("text/html");
+		
+		String campo;
+		String valorString;
+		Float valorFloat;
+		
+		String nome = req.getParameter("nome");
+		String preco = req.getParameter("preco");
+		
+		Produto produto = new Produto();
+		produto.setNome(nome);
+		produto.setPreco(Double.valueOf(preco));
+		
+		produto = carrinho.adicionar(produto);
+		
+		PrintWriter out = resp.getWriter();
+        out.println("produto: " +  produto );
+        out.close();
+		
+		
+		
+		 FileInputStream json = new FileInputStream("http://localhost:8080/produtos");
+         
+	        JsonParser parser = Json.createParser(json);
+	         
+	        while (parser.hasNext()) {
+	            Event event = parser.next();
+	            switch (event) {
+	              case KEY_NAME: {
+	                System.out.print(parser.getString() + "="); 
+	                campo = parser.getString();
+	                break;
+	              }
+	              case VALUE_STRING: {
+	                System.out.println(parser.getString()); 
+	                valorString = parser.getString();
+	                break;	                
+	              }
+	              case VALUE_NUMBER: {
+	                System.out.println(parser.getString()); break;
+	              }
+	              case VALUE_NULL: {
+	                System.out.println("null"); break;
+	              }
+	              case START_ARRAY: {
+	                System.out.println("Inicio do Array de Nome"); break;
+	              }
+	              case END_ARRAY: {
+	                System.out.println("Final do Array de Preco"); break;
+	              }
+	             case END_OBJECT: {
+	                System.out.println("Final do Objeto Json"); break;
+	              }
+	            }
+	            
+	            
+	            
+	         }
+		
+				
+        
+        
+        
+		
+	}
+
+}
